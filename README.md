@@ -9,7 +9,7 @@ Please make sure you have installed the latest version of docker before deployme
 Execute the following command to download tron-rosetta-api:
 
 ```
-$ git clone https://github.com/tronprotocol/tron-rosetta-api.git
+$ git clone https://github.com/gianinbasler/tron-rosetta-api.git
 ```
 
 ### Build rosetta image using tronprotocol base images

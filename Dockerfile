@@ -17,7 +17,7 @@ ENV JVM_OPTIONS="-Xms$XMS -Xmx$XMX -XX:NewRatio=7 \
 ENV TRON_OPTIONS=""
 
 #ADD . /tron-rosetta-api
-RUN git clone https://github.com/tronprotocol/tron-rosetta-api.git /tron-rosetta-api \
+RUN git clone https://github.com/gianinbasler/tron-rosetta-api.git /tron-rosetta-api \
     && set -o errexit -o nounset \
     && mkdir -p $BASE_DIR $DATA_DIR $LOG_DIR \
     && cd $BASE_DIR \

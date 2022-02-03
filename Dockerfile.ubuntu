@@ -18,7 +18,7 @@ ENV TRON_OPTIONS=""
 
 RUN apt-get update \
     && apt-get install -y git python-virtualenv \
-    && git clone https://github.com/tronprotocol/tron-rosetta-api.git /tron-rosetta-api \
+    && git clone https://github.com/gianinbasler/tron-rosetta-api.git /tron-rosetta-api \
     && set -o errexit -o nounset \
     && mkdir -p $BASE_DIR $DATA_DIR $LOG_DIR \
     && cd $BASE_DIR \
