@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.security.auth.login.AccountException;
 import javax.validation.Valid;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +70,7 @@ import org.tron.model.PublicKey;
 import org.tron.model.Signature;
 import static org.tron.common.utils.StringUtil.encode58Check;
 
+@Slf4j
 @Controller
 @RequestMapping("${openapi.rosetta.base-path:}")
 public class ConstructionApiController implements ConstructionApi {
@@ -326,8 +328,11 @@ public class ConstructionApiController implements ConstructionApi {
   public ResponseEntity<ConstructionCombineResponse> constructionCombine(@ApiParam(value = "", required = true) @Valid @RequestBody ConstructionCombineRequest constructionCombineRequest) {
     AtomicInteger statusCode = new AtomicInteger(HttpStatus.OK.value());
     getRequest().ifPresent(request -> {
+      logger.info("Request is present");
       for (MediaType mediaType : MediaType.parseMediaTypes(request.getHeader("Accept"))) {
+        logger.info("Found 'Accept' header with media type: {}", mediaType);
         if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
+          logger.info("Found media type compatible with 'application/json'");
           String returnString = "";
           //BalanceContract.TransferContract transferContract = BalanceContract.TransferContract.newBuilder().setAmount(10)
           //        .setOwnerAddress(ByteString.copyFrom(ByteArray.fromHexString("121212a9cf")))
@@ -348,29 +353,38 @@ public class ConstructionApiController implements ConstructionApi {
           try {
             TransactionCapsule transaction = new TransactionCapsule(
                     ByteArray.fromHexString(constructionCombineRequest.getUnsignedTransaction()));
+            logger.info("Extracted transaction from request: {}", transaction);
             Protocol.Transaction.Builder transactionBuilder = transaction.getInstance().toBuilder();
             for (Signature signature : constructionCombineRequest.getSignatures()) {
+              logger.info("Got signature: {}", signature);
               transactionBuilder.addSignature(ByteString.copyFrom(ByteArray.fromHexString(signature.getHexBytes())));
             }
             ConstructionCombineResponse constructionCombineResponse = new ConstructionCombineResponse();
-            constructionCombineResponse.setSignedTransaction(ByteArray.toHexString(transactionBuilder.build().toByteArray()));
+            String signedTransactionHex = ByteArray.toHexString(transactionBuilder.build().toByteArray());
+            logger.info("Created signed transaction hex: {}" + signedTransactionHex);
+            constructionCombineResponse.setSignedTransaction(signedTransactionHex);
             returnString = objectMapper.writeValueAsString(constructionCombineResponse);
+            logger.info("Created return string: {}", returnString);
           } catch (BadItemException | JsonProcessingException e) {
-            e.printStackTrace();
+            logger.error("Caught exception", e);
             statusCode.set(HttpStatus.INTERNAL_SERVER_ERROR.value());
             Error error = Constant.newError(Constant.INVALID_TRANSACTION_FORMAT);
+            logger.info("Created error to return: {}", error);
             try {
               returnString = objectMapper.writeValueAsString(error);
+              logger.info("Mapped error to return string: {}", returnString);
             } catch (JsonProcessingException ex) {
-              //ex.printStackTrace();
+              logger.error("Caught exception while creating error response", ex);
             }
           }
 
           ApiUtil.setExampleResponse(request, "application/json", returnString);
+          logger.info("Set example response with return string: {}", returnString);
           break;
         }
       }
     });
+    logger.info("Returning status code: {}", statusCode);
     return new ResponseEntity<>(HttpStatus.valueOf(statusCode.get()));
   }
 
